@@ -1,0 +1,35 @@
+{
+  "name": "prueba-backend",
+  "version": "1.0.0",
+  "description": "mi backend",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --exec node app/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jhousep/prueba-backend.git"
+  },
+  "keywords": [
+    "nodejs",
+    "express"
+  ],
+  "author": "iosef",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jhousep/prueba-backend/issues"
+  },
+  "homepage": "https://github.com/Jhousep/prueba-backend#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "dependencies": {
+    "argon2": "^0.40.1",
+    "cors": "2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "3.9.3"
+  }
+}
