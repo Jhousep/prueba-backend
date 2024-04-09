@@ -14,7 +14,7 @@ router.post("/", async (req, res) => {
   if (!!!email || !!!password) {
     return res
       .status(400)
-      .send({ statusCode: 400, message: "Campos requeridos" });
+      .send({ statusCode: 400, message: "Required fields" });
   }
 
   try {
@@ -50,13 +50,13 @@ router.post("/", async (req, res) => {
             console.log(error);
             res
               .status(500)
-              .send({ statusCode: 500, message: "Error en el servidor" });
+              .send({ statusCode: 500, message: "Server error" });
           }
         } else {
           //"email y/o password incorrecto"
           res.status(401).send({
             statusCode: 401,
-            message: "Email y/o contraseña incorrectos",
+            message: "Incorrect email and/or password",
           });
         }
       } catch (error) {
@@ -64,18 +64,18 @@ router.post("/", async (req, res) => {
         //"email y/o password incorrecto"
         res.status(401).send({
           statusCode: 401,
-          message: "Email y/o contraseña incorrectos",
+          message: "Incorrect email and/or password",
         });
       }
     } else {
       //"email y/o password incorrecto"
       res
         .status(401)
-        .send({ statusCode: 401, message: "Email y/o contraseña incorrectos" });
+        .send({ statusCode: 401, message: "Incorrect email and/or password" });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send({ statusCode: 500, message: "Error en el servidor" });
+    res.status(500).send({ statusCode: 500, message: "Server error" });
   }
 });
 

@@ -29,7 +29,6 @@ app.use("/api/client", clientRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/invoice", invoiceRoutes);
 
-
 app.get("/", (req, res) => {
   res.json({ message: "Hola mundo" });
 });

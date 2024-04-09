@@ -1,5 +1,8 @@
 import express from "express";
 import pool from "../dbConfig.js"; // Ruta relativa al archivo dbConfig.mjs
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import uuid from "../utils/helpers/uuid.js";
+import s3 from "../aws/awsConfig.js";
 
 const router = express.Router();
 
@@ -20,8 +23,31 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/voucher-details", async (req, res) => {
-  res.status(200).json({ user: [] });
+router.post("/voucher-details", async (req, res) => {
+  const { invoice_pk } = req.body;
+  try {
+
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query("SELECT voucher FROM invoice WHERE invoice_pk = ?", [invoice_pk]);
+    connection.release();
+
+    const data = rows[0];
+
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: `${process.env.AWS_KEY_FILE}${data.voucher}`,
+    };
+
+    const command = new GetObjectCommand(params);
+    const { Body } = await s3.send(command);
+
+    // Envía el cuerpo de la imagen como un flujo
+    res.setHeader("Content-Type", "image/jpeg");
+    Body.pipe(res);
+  } catch (error) {
+    console.error("Error al obtener la imagen desde S3:", error);
+    res.status(500).send("Error al obtener la imagen desde S3");
+  }
 });
 
 router.post("/products-details", async (req, res) => {
@@ -63,7 +89,26 @@ router.post("/create-invoice", async (req, res) => {
         quantity: product.quantity,
       }));
 
-      const voucher = "ruta desconocida";
+      // Obtener la parte de la cadena de datos que representa la imagen codificada en base64
+      const imageData = other_data.uploadedImage.replace(
+        /^data:image\/png;base64,/,
+        ""
+      );
+      // Decodificar la imagen base64 y guardarla en un archivo
+      const imageBuffer = Buffer.from(imageData, "base64");
+
+      const generateUUID = uuid();
+      const voucher = generateUUID + ".jpg";
+      // Configurar los parámetros para subir la imagen a AWS S3
+      const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `${process.env.AWS_KEY_FILE}${voucher}`,
+        Body: imageBuffer,
+        ContentType: "image/jpeg",
+      };
+
+      const command = new PutObjectCommand(params);
+      await s3.send(command);
 
       const connection = await pool.getConnection();
       const [invoice_created] = await connection.query(
@@ -92,8 +137,11 @@ router.post("/create-invoice", async (req, res) => {
         }
         connection.release();
 
-        res.status(200).send({ statusCode: 200, message: "Se ha creado exitosamente el invoice con sus productos" });
-
+        res.status(200).send({
+          statusCode: 200,
+          message:
+            "Se ha creado exitosamente el invoice con sus productos y voucher",
+        });
       } catch (error) {
         console.log("Error insertar los productos: ", error);
         res
